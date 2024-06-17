@@ -8,6 +8,8 @@ from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import Qt, QSize
 
+#test comment
+
 import gui  # Это наш конвертированный файл дизайна
 import methods
 import networkx as nx

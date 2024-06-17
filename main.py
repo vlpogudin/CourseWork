@@ -8,8 +8,6 @@ from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import Qt, QSize
 
-#test comment
-
 import gui  # Это наш конвертированный файл дизайна
 import methods
 import networkx as nx
@@ -25,16 +23,19 @@ class ExampleApp(QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         # Создание и хранение исходного графа
         self.orig_hamiltonias_cycle = []
-        self.graph_original = self.CreateOriginalGraph()
+        self.graph_original = self.create_original_graph()
 
         # Хранение узлов изоморфного графа
         self.isomorph_hamiltonias_cycle = []
 
+        # Блокируем кнопки, чтобы их можно было нажать только после вывода всей информации
+        self.block_buttons()
+
         # Начало диалога
-        self.PrintWelcomeMessages()
+        self.print_welcome_messages()
 
         # Нажатие на кнопку "Соотношение сторон"
-        self.pb_VertexRatio.clicked.connect(self.PushVertexRatio)
+        self.pb_VertexRatio.clicked.connect(self.push_vertex_ratio)
 
         # Нажатие на кнопку "Гамильтонов цикл"
         self.pb_Cycle.clicked.connect(self.PushCycle)
@@ -43,22 +44,22 @@ class ExampleApp(QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.pb_NewDialog.clicked.connect(self.ClearWidgets)
 
         # Добавляем горячую клавишу для открытия руководства пользователя
-        keyboard.add_hotkey("f1", self.OpenDocumentation)
+        keyboard.add_hotkey("f1", self.open_documentation)
 
     # region Начало диалога
     # Печать начальных сообщений и исходного графа
-    def PrintWelcomeMessages(self):
+    def print_welcome_messages(self):
         # Создаем и печатаем оригинальный граф
-        qimg_orig = self.SaveOriginalGraph()
-        self.PrintOriginalGraph(qimg_orig)
+        qimg_orig = self.save_original_graph()
+        self.print_original_graph(qimg_orig)
 
         self.timer = QtCore.QTimer()  # Создаем таймер
-        self.timer.timeout.connect(self.PrintNextMessage)  # Подключаем печать следующего сообщения к таймеру
+        self.timer.timeout.connect(self.print_next_messages)  # Подключаем печать следующего сообщения к таймеру
         self.timer.start(1000)  # Ставим таймер с интервалом в 1 секунду
         self.message_index = 0  # Создаем счетчик для отслеживания текущего сообщения
 
     # Печать следующего сообщения по таймеру
-    def PrintNextMessage(self):
+    def print_next_messages(self):
         # Создаем список с сообщениями
         messages = [
             "Доказывающий: Я знаю гамильтонов цикл в исходном графе.",
@@ -73,85 +74,98 @@ class ExampleApp(QtWidgets.QMainWindow, gui.Ui_MainWindow):
         else:
             # Если все сообщения выведены, останавливаем таймер
             self.timer.stop()
+            self.pb_Cycle.setEnabled(True)  # Разблокируем кнопки после вывода всех сообщений
+            self.pb_VertexRatio.setEnabled(True)
     # endregion
 
     # region Обработка нажатия на кнопку "Соответствие вершин"
     # Обработка нажатия на кнопку "Соответствие вершин"
-    def PushVertexRatio(self):
+    def push_vertex_ratio(self):
+        # Блокируем кнопки
+        self.block_buttons()
+
         # Печать запроса проверяющего
-        self.PrintQuestion_VertexRatio()
+        self.print_question_vertex_ratio()
 
         # Создаем и печатаем изоморфный граф
-        qimg_isomorph = self.CreateAndSafeIsomorphicGraph()
-        self.PrintIsomorphicGraph(qimg_isomorph)
+        qimg_isomorph = self.create_and_safe_isomorphic_graph()
+        self.print_isomorphic_graph(qimg_isomorph)
 
         # Спим, изображая раздумья доказывающего
         self.timer = QtCore.QTimer()
-        self.timer.timeout.connect(self.PrintAnswer_VertexRatio)  # Подключаем к нужному слоту
+        self.timer.timeout.connect(self.print_answer_vertex_ratio)  # Подключаем к нужному слоту
         self.timer.setSingleShot(True)  # Выполнить только один раз
         self.timer.start(1000)
 
     # Печать вопроса проверяющего
-    def PrintQuestion_VertexRatio(self):
+    def print_question_vertex_ratio(self):
         # Печать запроса проверяющего
         self.te_DialogWindow.append("Проверяющий: Покажи соответствие вершин.")
 
-
     # Печать ответа доказывающего
-    def PrintAnswer_VertexRatio(self):
+    def print_answer_vertex_ratio(self):
         # Печать ответа доказывающего
         self.te_DialogWindow.append("Доказывающий: Демонстрирую соответствие вершин на графе.")
         # Печать соответствия вершин
         vertex_ratio = methods.show_compliance_node(self.orig_hamiltonias_cycle, self.isomorph_hamiltonias_cycle)
         self.te_DialogWindow.append(vertex_ratio)
-
+        # Возвращаем кнопкам активное состояние
+        self.enable_buttons()
     # endregion
 
     # region Обработка нажатия на кнопку "Гамильтонов цикл"
     # Обработка нажатия на кнопку "Гамильтонов цикл"
     def PushCycle(self):
+        # Блокируем кнопки
+        self.block_buttons()
+
         # Печать запроса проверяющего
-        self.PrintQuestion_Cycle()
+        self.print_question_cycle()
 
         # Создаем и печатаем изоморфный граф
-        qimg_isomorph = self.CreateAndSafeIsomorphicGraph()
-        self.PrintIsomorphicGraph(qimg_isomorph)
+        qimg_isomorph = self.create_and_safe_isomorphic_graph()
+        self.print_isomorphic_graph(qimg_isomorph)
 
         # Спим, изображая раздумья доказывающего
         self.timer = QtCore.QTimer()
-        self.timer.timeout.connect(self.PrintAnswer_Cycle)  # Подключаем к нужному слоту
+        self.timer.timeout.connect(self.print_answer_cycle)  # Подключаем к нужному слоту
         self.timer.setSingleShot(True)  # Выполнить только один раз
         self.timer.start(1000)
 
     # Печать вопроса проверяющего
-    def PrintQuestion_Cycle(self):
+    def print_question_cycle(self):
         # Печать запроса проверяющего и ответа доказывающего
         self.te_DialogWindow.append("Проверяющий: Покажи гамильтонов цикл.")
 
     # Печать ответа доказывающего
-    def PrintAnswer_Cycle(self):
+    def print_answer_cycle(self):
         # Печать ответа доказывающего
         self.te_DialogWindow.append("Доказывающий: Показываю гамильтонов цикл в изоморфном графе.")
         # Печать гамильтонова графа
         hamiltonias_cycle = methods.print_hamiltonias_cycle(self.isomorph_hamiltonias_cycle)
         self.te_DialogWindow.append(hamiltonias_cycle)
+        # Возвращаем кнопкам активное состояние
+        self.enable_buttons()
+
     # endregion
 
     # region Обработка нажатия на кнопку "Новый диалог"
     # Обработка кнопки "Новый диалог" (очистка всех виджетов)
     def ClearWidgets(self):
+        # Блокируем кнопки
+        self.block_buttons()
         # Очистка диалогового окна
         self.te_DialogWindow.clear()
         # Создаем новый исходный граф
-        self.graph_original = self.CreateOriginalGraph()
+        self.graph_original = self.create_original_graph()
         # Вызов функции печати начальных сообщений диалога
-        self.PrintWelcomeMessages()
+        self.print_welcome_messages()
     # endregion
 
-    # region Работа с вспомогательной документацией
+    # region Работа со вспомогательной документацией
     # Открытие руководства пользователя
-    def OpenDocumentation(self):
-        help_file = 'C:\\Users\\pogud\\OneDrive\\Desktop\\1234.pdf'
+    def open_documentation(self):
+        help_file = 'C:\\Users\\pogud\\OneDrive\\Desktop\\HSE\\Курсовой проект\\Руководство пользователя.docx'
         if os.path.exists(help_file):
             webbrowser.open('file://' + os.path.realpath(help_file))
         else:
@@ -159,7 +173,8 @@ class ExampleApp(QtWidgets.QMainWindow, gui.Ui_MainWindow):
     # endregion
 
     # region Работа с оригинальным графом
-    def CreateOriginalGraph(self):
+    # Создание исходного графа
+    def create_original_graph(self):
         # Создание нового (исходного графа)
         graph_original = methods.create_big_graph(20, 30)
 
@@ -171,7 +186,7 @@ class ExampleApp(QtWidgets.QMainWindow, gui.Ui_MainWindow):
         return graph_original
 
     # Сохранение исходного графа
-    def SaveOriginalGraph(self):
+    def save_original_graph(self):
         # Создание объекта фигуры и объекта оси
         fig, ax = plt.subplots(figsize=(8, 8))
 
@@ -190,14 +205,14 @@ class ExampleApp(QtWidgets.QMainWindow, gui.Ui_MainWindow):
         return qimg
 
     # Вывод исходного графа в текстовое окно GraphImage
-    def PrintOriginalGraph(self, qimg):
+    def print_original_graph(self, qimg):
         # Устанавливаем в окно картинку
         self.lb_GraphImage.setPixmap(qimg)
     # endregion
 
     # region Работа с изоморфным графом
     # Создание и печать изоморфного графа
-    def CreateAndSafeIsomorphicGraph(self):
+    def create_and_safe_isomorphic_graph(self):
         # Создание объекта фигуры и объекта оси
         fig, ax = plt.subplots(figsize=(8, 8))
 
@@ -219,10 +234,23 @@ class ExampleApp(QtWidgets.QMainWindow, gui.Ui_MainWindow):
         qimg_isomorph = qimg_isomorph.scaled(QSize(720, 580), Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
         return qimg_isomorph
 
-    def PrintIsomorphicGraph(self, qimg):
+    def print_isomorphic_graph(self, qimg):
         self.lb_GraphImage.setPixmap(qimg)
     # endregion
 
+    # region Работа с кнопками
+    # Возвращаем кнопкам активное состояние
+    def enable_buttons(self):
+        # Возвращаем кнопкам активное состояние
+        self.pb_Cycle.setEnabled(True)
+        self.pb_VertexRatio.setEnabled(True)
+
+    # Блокируем состояние кнопок
+    def block_buttons(self):
+        # Блокируем кнопки
+        self.pb_Cycle.setEnabled(False)
+        self.pb_VertexRatio.setEnabled(False)
+    # endregion
 
 def main():
     app = QtWidgets.QApplication(sys.argv)  # Новый экземпляр QApplication

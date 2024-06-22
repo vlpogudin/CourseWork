@@ -85,7 +85,7 @@ class Ui_MainWindow(object):
         self.te_DialogWindow = QtWidgets.QTextEdit(self.tb_program)
         self.te_DialogWindow.setGeometry(QtCore.QRect(10, 80, 411, 711))
         font = QtGui.QFont()
-        font.setPointSize(11)
+        font.setPointSize(12)
         font.setKerning(True)
         self.te_DialogWindow.setFont(font)
         self.te_DialogWindow.setAcceptDrops(True)
@@ -116,7 +116,11 @@ class Ui_MainWindow(object):
         self.te_DialogWindow_2 = QtWidgets.QTextEdit(self.tb_program)
         self.te_DialogWindow_2.setGeometry(QtCore.QRect(960, 80, 411, 711))
         font = QtGui.QFont()
+<<<<<<< HEAD
+        font.setPointSize(12)
+=======
         font.setPointSize(11)
+>>>>>>> b12046a9a9676a356ae253391c6015db2f2e0d0e
         font.setKerning(True)
         self.te_DialogWindow_2.setFont(font)
         self.te_DialogWindow_2.setAcceptDrops(True)
@@ -140,6 +144,34 @@ class Ui_MainWindow(object):
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout(self.layoutWidget1)
         self.horizontalLayout_3.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
+<<<<<<< HEAD
+        self.pb_CorrectGraph = QtWidgets.QPushButton(self.layoutWidget1)
+        self.pb_CorrectGraph.setEnabled(True)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.pb_CorrectGraph.sizePolicy().hasHeightForWidth())
+        self.pb_CorrectGraph.setSizePolicy(sizePolicy)
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.pb_CorrectGraph.setFont(font)
+        self.pb_CorrectGraph.setObjectName("pb_CorrectGraph")
+        self.horizontalLayout_3.addWidget(self.pb_CorrectGraph)
+        spacerItem3 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_3.addItem(spacerItem3)
+        self.pb_Deception = QtWidgets.QPushButton(self.layoutWidget1)
+        self.pb_Deception.setEnabled(True)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.pb_Deception.sizePolicy().hasHeightForWidth())
+        self.pb_Deception.setSizePolicy(sizePolicy)
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.pb_Deception.setFont(font)
+        self.pb_Deception.setObjectName("pb_Deception")
+        self.horizontalLayout_3.addWidget(self.pb_Deception)
+=======
         self.pb_VertexRatio_3 = QtWidgets.QPushButton(self.layoutWidget1)
         self.pb_VertexRatio_3.setEnabled(True)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
@@ -166,6 +198,7 @@ class Ui_MainWindow(object):
         self.pb_VertexRatio_2.setFont(font)
         self.pb_VertexRatio_2.setObjectName("pb_VertexRatio_2")
         self.horizontalLayout_3.addWidget(self.pb_VertexRatio_2)
+>>>>>>> b12046a9a9676a356ae253391c6015db2f2e0d0e
         self.lb_Title_3 = QtWidgets.QLabel(self.tb_program)
         self.lb_Title_3.setGeometry(QtCore.QRect(10, 50, 411, 30))
         font = QtGui.QFont()
@@ -198,7 +231,11 @@ class Ui_MainWindow(object):
         self.pb_NewDialog.setFont(font)
         self.pb_NewDialog.setObjectName("pb_NewDialog")
         self.widget = QtWidgets.QWidget(self.tb_program)
+<<<<<<< HEAD
+        self.widget.setGeometry(QtCore.QRect(12, 820, 572, 35))
+=======
         self.widget.setGeometry(QtCore.QRect(12, 820, 571, 35))
+>>>>>>> b12046a9a9676a356ae253391c6015db2f2e0d0e
         self.widget.setObjectName("widget")
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.widget)
         self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
@@ -262,8 +299,13 @@ class Ui_MainWindow(object):
         self.lb_IsomorphicGraphImage.setText(_translate("MainWindow", "Диалог еще не начат"))
         self.lb_DeceptionProbability.setText(_translate("MainWindow", "Вероятность обмана:"))
         self.lb_percentage.setText(_translate("MainWindow", "0"))
+<<<<<<< HEAD
+        self.pb_CorrectGraph.setText(_translate("MainWindow", "Верный граф"))
+        self.pb_Deception.setText(_translate("MainWindow", "Обмануть"))
+=======
         self.pb_VertexRatio_3.setText(_translate("MainWindow", "Верный граф"))
         self.pb_VertexRatio_2.setText(_translate("MainWindow", "Обмануть"))
+>>>>>>> b12046a9a9676a356ae253391c6015db2f2e0d0e
         self.lb_Title_3.setText(_translate("MainWindow", "Проверяющая сторона"))
         self.lb_Title_4.setText(_translate("MainWindow", "Доказывающая сторона"))
         self.pb_NewDialog.setText(_translate("MainWindow", "Новый диалог"))

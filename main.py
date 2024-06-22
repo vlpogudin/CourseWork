@@ -207,7 +207,7 @@ class ExampleApp(QtWidgets.QMainWindow, gui.Ui_MainWindow):
     # Вывод исходного графа в текстовое окно GraphImage
     def print_original_graph(self, qimg):
         # Устанавливаем в окно картинку
-        self.lb_GraphImage.setPixmap(qimg)
+        self.lb_OrigGraphImage.setPixmap(qimg)
     # endregion
 
     # region Работа с изоморфным графом
@@ -235,7 +235,7 @@ class ExampleApp(QtWidgets.QMainWindow, gui.Ui_MainWindow):
         return qimg_isomorph
 
     def print_isomorphic_graph(self, qimg):
-        self.lb_GraphImage.setPixmap(qimg)
+        self.lb_IsomorphicGraphImage.setPixmap(qimg)
     # endregion
 
     # region Работа с кнопками

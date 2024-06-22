@@ -147,8 +147,3 @@ def show_compliance_node(array_hamiltonias_cycle_original_graph, array_hamiltoni
               f"вершине ИЗ {array_hamiltonias_cycle_isomorphic_graph[i]}.\n")  # ИЗ - изоморфный
     return s[:-2]
 
-
-original_graph = create_big_graph(10, 20)
-add_random_edges(original_graph, 0.4)
-draw_graph_original(original_graph)
-draw_graph_changed_position(original_graph)

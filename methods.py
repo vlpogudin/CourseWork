@@ -1,12 +1,45 @@
 from import_library import *
 
 
+# метод для бинарного поиска элемента в массиве
+def binary_search(arr, low, high, x):
+    while low <= high:
+
+        mid = low + (high - low) // 2
+
+        # Check if x is present at mid
+        if arr[mid] == x:
+            return mid
+
+        # If x is greater, ignore left half
+        elif arr[mid] < x:
+            low = mid + 1
+
+        # If x is smaller, ignore right half
+        else:
+            high = mid - 1
+
+    # If we reach here, then the element
+    # was not present
+    return -1
+
+
+# метод для сортировки массива методом пузырька
+def bubble_sort(array_graph):
+    lenght_array_original_graph = len(array_graph)
+    for i in range(lenght_array_original_graph - 1):
+        for j in range(0, lenght_array_original_graph - i - 1):
+            if array_graph[j] > array_graph[j + 1]:
+                array_graph[j], array_graph[j + 1] = array_graph[j + 1], array_graph[j]
+    return array_graph
+
+
 # Метод для построения графа с большим количество вершин
 def create_big_graph(right_border, left_border):
     count_node = random.randint(right_border, left_border)  # Задаём количество вершин
 
-    Graph = nx.Graph()  # Создаём как бы мнимыый граф
-    Graph.add_nodes_from(range(count_node))  # Добавляем нужное количество вершин
+    graph = nx.Graph()  # Создаём как бы мнимыый граф
+    graph.add_nodes_from(range(count_node))  # Добавляем нужное количество вершин
 
     array_node_number = []  # Создаём массив, в котором будем хранить номера вершин, к которым присоединяем рёбра
     #  добавялем вершины и перемешиваем массив
@@ -19,8 +52,8 @@ def create_big_graph(right_border, left_border):
     for i in range(0, len(array_node_number) - 1):
         first_node_number = array_node_number[i]
         second_node_number = array_node_number[i + 1]
-        Graph.add_edge(first_node_number, second_node_number)
-    return Graph  # возвращаем получившийся граф
+        graph.add_edge(first_node_number, second_node_number)
+    return graph  # возвращаем получившийся граф
 
 
 # Метод для рисования исходного графа
@@ -82,8 +115,8 @@ def add_random_edges(graph_original, factor_count_edge):
                           / 2 - count_nodes) * factor_count_edge  # Получаем количество рёбер для добавления
 
     while count_edges_to_add > 0:  # чтобы не было багов при добавлении рёбер
-        first_random_node = random.randint(0, count_nodes)
-        second_random_node = random.randint(0, count_nodes)
+        first_random_node = random.randint(0, count_nodes - 1)
+        second_random_node = random.randint(0, count_nodes - 1)
         is_nodes_have_edge = graph_original.has_edge(first_random_node, second_random_node)
 
         # проверяем есть ли у вершины рёбра и не одинаковые ли first_random_node и second_random_node, иначе может
@@ -100,14 +133,19 @@ def create_isomorphic_graph(graph_original):
     changing_name = {}  # словарь, в котором для каждого i-того значения от 0 до кол-ва вершин в оригинальном графе
     # будет новер вершины из изоморфного графа
     array_isomorphic_nodes = []  # массив, в котором храним номера всех вершин в новом графе
+    array_binary_search = []  # массив, в котором храним номера вершин для бинарного поиска
     count_cycle = 0  # счётчик, чтобы не допустить ошибок при добавлении графа, потому что могут добавиться вершины
     # с одинаковыми номерами
 
     while count_cycle < count_nodes:
-        isomorphic_node_number = random.randint(0, 1000)  # получаем случайное число для новой вершины
+        isomorphic_node_number = random.randint(0, count_nodes - 1)  # получаем случайное число для новой вершины
         # в изоморфном графе
-        if isomorphic_node_number not in array_isomorphic_nodes:  # если этой вершины ещё нет в массиве
+
+        array_binary_search = bubble_sort(array_binary_search)
+        index = binary_search(array_binary_search, 0, len(array_isomorphic_nodes) - 1, isomorphic_node_number)
+        if index == -1:
             changing_name[count_cycle] = isomorphic_node_number  # задаём правило соответствия вершин
+            array_binary_search.append(isomorphic_node_number)
             array_isomorphic_nodes.append(isomorphic_node_number)  # добавляем её в массив
             count_cycle += 1
 
@@ -141,9 +179,18 @@ def find_hamiltonias_cycle_isomorphic_graph(array_hamiltonias_cycle_original_gra
 
 # Метод для показа соответствия вершин
 def show_compliance_node(array_hamiltonias_cycle_original_graph, array_hamiltonias_cycle_isomorphic_graph):
-    s = ''
-    for i in range(len(array_hamiltonias_cycle_original_graph)):  # будем идти по циклу и перебирать вершины
-        s += (f"Вершина ИС {array_hamiltonias_cycle_original_graph[i]} - "  # ИС - исходный
-              f"вершина ИЗ {array_hamiltonias_cycle_isomorphic_graph[i]}.\n")  # ИЗ - изоморфный
-    return s[:-2]
+    hamiltonias_cycle_dict = {}  # создадим словарь, в который будем добавлять вершины по правилу (вершина ИС :
+    # вершина ИЗ)
+    for i in range(len(array_hamiltonias_cycle_original_graph) - 1):  # заполняем полученный словарь, длина - 1,
+        # чтобы не было повтора с 1 вершиной
+        hamiltonias_cycle_dict[array_hamiltonias_cycle_original_graph[i]] = array_hamiltonias_cycle_isomorphic_graph[i]
 
+    # выполняем сортировку массива пузырьком
+    array_hamiltonias_cycle_original_graph = bubble_sort(array_hamiltonias_cycle_original_graph)
+
+    s = ''
+    for i in range(1, len(array_hamiltonias_cycle_original_graph)):  # будем идти по циклу и перебирать вершины
+        s += (f"Вершина ИС {array_hamiltonias_cycle_original_graph[i]} - "  # ИС - исходный
+              f"вершина ИЗ {hamiltonias_cycle_dict[array_hamiltonias_cycle_original_graph[i]]}.\n")
+        # ИЗ - изоморфный
+    return s[:-1]

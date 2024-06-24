@@ -7,7 +7,7 @@ import os
 import matplotlib.pyplot as plt
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtCore import Qt, QSize, QTimer
+from PyQt5.QtCore import Qt, QSize
 
 import gui  # Это наш конвертированный файл дизайна
 import methods

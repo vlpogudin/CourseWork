@@ -76,7 +76,7 @@ class ExampleApp(QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.timer = QtCore.QTimer()  # Создание таймера для печати сообщений
         self.timer.timeout.connect(self.print_next_messages)  # Подключение функции вывода сообщений к таймеру
-        self.timer.start(1500)  # Запуск таймера на 1,5 сек., имитируя раздумья сторон
+        self.timer.start(100)  # Запуск таймера на 1,5 сек., имитируя раздумья сторон
 
         self.message_index = 0  # Сохранение индекса сообщений для печати
 

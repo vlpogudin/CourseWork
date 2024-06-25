@@ -7,20 +7,19 @@ def binary_search(arr, low, high, x):
 
         mid = low + (high - low) // 2
 
-        # Check if x is present at mid
+        # если же мы нашли X
         if arr[mid] == x:
             return mid
 
-        # If x is greater, ignore left half
+        # если Х больше, чем элемент в середине массива
         elif arr[mid] < x:
             low = mid + 1
 
-        # If x is smaller, ignore right half
+        # если Х меньше, чем элемент в середине массива
         else:
             high = mid - 1
 
-    # If we reach here, then the element
-    # was not present
+    # если мы дошли до этого момента, то элемент не найден
     return -1
 
 
@@ -46,7 +45,7 @@ def create_big_graph(right_border, left_border):
     for i in range(0, count_node):
         array_node_number.append(i)
     random.shuffle(array_node_number)
-    array_node_number.append(array_node_number[0])  # добавялется самая первая вершина, чтобы граф замкнулся
+    array_node_number.append(array_node_number[0])  # добавляется самая первая вершина, чтобы граф замкнулся
 
     # добавялем рёбра по очереди от каждой вершины к другой
     for i in range(0, len(array_node_number) - 1):
@@ -131,7 +130,7 @@ def add_random_edges(graph_original, factor_count_edge):
 def create_isomorphic_graph(graph_original):
     count_nodes = graph_original.number_of_nodes()  # получаем кол-во вершин в оригинальном графе
     changing_name = {}  # словарь, в котором для каждого i-того значения от 0 до кол-ва вершин в оригинальном графе
-    # будет новер вершины из изоморфного графа
+    # будет номер вершины из изоморфного графа
     array_isomorphic_nodes = []  # массив, в котором храним номера всех вершин в новом графе
     array_binary_search = []  # массив, в котором храним номера вершин для бинарного поиска
     count_cycle = 0  # счётчик, чтобы не допустить ошибок при добавлении графа, потому что могут добавиться вершины
@@ -174,7 +173,7 @@ def find_hamiltonias_cycle_isomorphic_graph(array_hamiltonias_cycle_original_gra
         array_hamiltonias_cycle_isomorphic_graph.append(
             array_nodes_isomorphic_graph[array_hamiltonias_cycle_original_graph[i]])  # из массива
         # с вершинами в изоморфном графе будем брать номер по индексу из массива с оригинальными вершинами
-    return array_hamiltonias_cycle_isomorphic_graph  # возвращаем оплучившийся цикл в изоморфном графе
+    return array_hamiltonias_cycle_isomorphic_graph  # возвращаем получившийся цикл в изоморфном графе
 
 
 # Метод для показа соответствия вершин
@@ -194,3 +193,79 @@ def show_compliance_node(array_hamiltonias_cycle_original_graph, array_hamiltoni
               f"вершина ИЗ {hamiltonias_cycle_dict[array_hamiltonias_cycle_original_graph[i]]}.\n")
         # ИЗ - изоморфный
     return s[:-1]
+
+
+# метод для сравнения двух графов, путём соответствия вершин
+def compare_graphs(original_graph, isomorphic_graph):
+    list_nodes_original = list(original_graph.nodes)
+    list_nodes_isomorphic = list(isomorphic_graph.nodes)
+    count_cycle = 0
+    count_nodes = original_graph.number_of_nodes()
+
+    while count_cycle < count_nodes:
+        node1 = list_nodes_original[count_cycle]
+        node2 = list_nodes_isomorphic[count_cycle]
+        len_array1 = len([n for n in original_graph.neighbors(node1)])
+        len_array2 = len([n for n in isomorphic_graph.neighbors(node2)])
+        if len_array2 != len_array1:
+            return False
+        else:
+            count_cycle += 1
+
+    return True
+
+
+# метод для создания графа, в котором мы не знаем гамильтонов цикл
+def create_false_graph(right_border, left_border):
+    count_node = random.randint(right_border, left_border)  # Задаём количество вершин
+
+    graph = nx.Graph()  # Создаём как бы мнимыый граф
+    graph.add_nodes_from(range(count_node))  # Добавляем нужное количество вершин
+
+    array_node_number = []  # Создаём массив, в котором будем хранить номера вершин, к которым присоединяем рёбра
+    #  добавялем вершины и перемешиваем массив
+    for i in range(0, count_node):
+        array_node_number.append(i)
+    random.shuffle(array_node_number)
+
+    # добавялем рёбра по очереди от каждой вершины к другой
+    for i in range(0, len(array_node_number) - 1):
+        first_node_number = array_node_number[i]
+        second_node_number = array_node_number[i + 1]
+        graph.add_edge(first_node_number, second_node_number)
+
+    return graph  # возвращаем получившийся граф
+
+
+# method for create isomorphic graph with cycle for false graph
+def create_isomorphic_false_graph(original_graph):
+    count_nodes = original_graph.number_of_nodes()
+    isomorphic_graph = nx.Graph()  # create empty graph
+    isomorphic_graph.add_nodes_from(range(count_nodes))  # graph with same number of nodes
+
+    array_node_number = []  # Создаём массив, в котором будем хранить номера вершин, к которым присоединяем рёбра
+    #  добавялем вершины и перемешиваем массив
+    for i in range(0, count_nodes):
+        array_node_number.append(i)
+    random.shuffle(array_node_number)
+
+    # добавялем рёбра по очереди от каждой вершины к другой
+    for i in range(0, len(array_node_number) - 1):
+        first_node_number = array_node_number[i]
+        second_node_number = array_node_number[i + 1]
+        isomorphic_graph.add_edge(first_node_number, second_node_number)
+
+    add_random_edges(isomorphic_graph, 0.4)
+    isomorphic_graph, array_isomorphic_cycle = create_isomorphic_graph(isomorphic_graph)
+
+    return isomorphic_graph, array_isomorphic_cycle  # возвращаем получившийся граф
+
+# if you want to check, -> down below
+# false_graph = create_false_graph(10,15)
+# add_random_edges(false_graph, 0.4)
+# draw_graph_original(false_graph)
+# isomorphic_graph, array_isomorphic_cycle = create_isomorphic_false_graph(false_graph)
+# draw_graph_isomorphic(isomorphic_graph)
+# is_compare = compare_graphs(false_graph, isomorphic_graph)
+# print(array_isomorphic_cycle)
+# print(is_compare)

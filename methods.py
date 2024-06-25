@@ -237,7 +237,7 @@ def create_false_graph(right_border, left_border):
     return graph  # возвращаем получившийся граф
 
 
-# method for create isomorphic graph with cycle for false graph
+# method for create isomorphic graph with cycle for false graph 
 def create_isomorphic_false_graph(original_graph):
     count_nodes = original_graph.number_of_nodes()
     isomorphic_graph = nx.Graph()  # create empty graph

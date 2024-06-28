@@ -7,7 +7,7 @@ import os
 import matplotlib.pyplot as plt
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtCore import Qt, QSize, QTimer
+from PyQt5.QtCore import Qt, QSize
 
 import gui  # Это наш конвертированный файл дизайна
 import methods
@@ -17,23 +17,26 @@ import networkx as nx
 class ExampleApp(QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     def __init__(self):
-        # Это здесь нужно для доступа к переменным, методам
-        # и т.д. в файле gui.py
         super().__init__()
-        self.setupUi(self)  # Это нужно для инициализации нашего дизайна
+        self.setupUi(self)  # Инициализация дизайна
 
-        # Создание и хранение исходного графа
-        self.orig_hamiltonias_cycle = []
-        self.graph_original = self.create_original_graph()
+        self.timer = QtCore.QTimer()  # Создание таймера для печати сообщений
 
-        # Хранение узлов изоморфного графа
-        self.isomorphic_hamiltonias_cycle = []
+        self.orig_hamiltonias_cycle = []  # Гамильтонов цикл исходного графа
 
-        self.start_dialog()
+        self.isomorphic_hamiltonias_cycle = []  # Гамильтонов цикл изоморфного графа
 
+        self.deception_percentage = 0  # Вероятность обмана в частях (по умолчанию - 0)
+        self.lb_Percentage.setText(str(self.deception_percentage))  # Показываем вероятность обмана в поле вероятности
+        self.is_deception = False  # Запоминаем, созданный граф верный или нет (по умолчанию - нет)
+        self.action = 0  # Хранение действия (соответствие - 1, цикл - 2)
+
+        self.start_dialog()  # Начало диалога
+
+        # Подключаем нажатие кнопок к определенным функциям
         self.pb_VertexRatio.clicked.connect(self.push_vertex_ratio)  # Нажатие на кнопку "Соотношение сторон"
         self.pb_Cycle.clicked.connect(self.push_cycle)  # Нажатие на кнопку "Гамильтонов цикл"
-        self.pb_NewDialog.clicked.connect(self.clear_widgets)  # Нажатие на кнопку "Новый диалог"
+        self.pb_NewDialog.clicked.connect(self.push_new_dialog)  # Нажатие на кнопку "Новый диалог"
         self.pb_Deception.clicked.connect(self.push_deception)  # Нажатие на кнопку "Обмануть"
         self.pb_CorrectGraph.clicked.connect(self.push_correct_graph)  # Нажатие на кнопку "Верный граф"
         self.pb_CheckGraph.clicked.connect(self.push_check_graph)  # Нажатие на кнопку "Проверить граф"
@@ -41,34 +44,96 @@ class ExampleApp(QtWidgets.QMainWindow, gui.Ui_MainWindow):
         # Добавляем горячую клавишу для открытия руководства пользователя
         keyboard.add_hotkey("f1", self.open_documentation)
 
+    # region Работа с вероятностью обмана
+    # Функция обновления вероятности обмана
+    def update_deception_percentage(self):
+        if self.deception_percentage == 0:
+            self.deception_percentage = 0.5
+        else:
+            self.deception_percentage *= 0.5
+
+    # Функция проверки вероятности обмана на достаточность процента
+    def check_deception_percentage(self):
+        is_full = (self.deception_percentage == 2**(-10))  # Определяем, достигла ли вероятность граничного значения
+        if is_full:  # Если достигла
+            (self.te_DialogWindow_2.append
+             ("Проверяющий: Ты действительно доказал мне, что знаешь гамильтонов цикл в исходном графе."))
+            self.block_buttons()  # Блокируем все кнопки, имитируя конец диалога
+        else:
+            pass
+    # endregion
+
+    # region Обработка нажатия на кнопку "Обмануть"
+    def push_deception(self):
+        self.prover_block_buttons()  # Блокируем кнопки для доказывающей стороны
+        self.te_DialogWindow_2.clear()  # Очистка диалогового окна доказывающей стороны
+        self.graph_original = methods.create_false_graph(7, 12)  # Создание неверного графа
+        self.graph_original = methods.add_random_edges(self.graph_original, 0.2)  # Добавляем ребра
+        self.is_deception = True  # Сохраняем, что был создан неверный граф
+        orig_qimage = self.save_original_graph()  # Сохранение оригинального неверного графа
+        self.print_original_graph(orig_qimage)  # Печать созданного неверного графа
+        self.print_messages_after_choice()  # Печать сообщений после выбора доказывающей стороны
+    # endregion
+
+    # region Обработка нажатия на кнопку "Верный граф"
+    def push_correct_graph(self):
+        self.prover_block_buttons()  # Блокируем кнопки для доказывающей стороны
+        self.te_DialogWindow_2.clear()  # Очистка диалогового окна доказывающей стороны
+        self.graph_original = methods.create_big_graph(7, 12)  # Создание верного графа
+        self.orig_hamiltonias_cycle = (
+            methods.find_hamiltonias_cycle_original_graph(self.graph_original))  # Сохраняем гамильтонов цикл
+        self.graph_original = methods.add_random_edges(self.graph_original, 0.2)  # Добавляем ребра
+        self.is_deception = False  # Сохраняем, что был создан верный граф
+        # Создание изоморфного графа и сохранение его гамильтонова цикла
+        self.graph_isomorphic, self.isomorphic_hamiltonias_cycle = (
+            methods.create_isomorphic_graph(self.graph_original))
+        qimg_orig = self.save_original_graph()  # Сохранение оригинального верного графа
+        self.print_original_graph(qimg_orig)  # Печать созданного верного графа
+        self.print_messages_after_choice()  # Печать сообщений после выбора доказывающей стороны
+    # endregion
+
+    # region Обработка нажатия на кнопку "Проверить граф"
+    def push_check_graph(self):
+        if self.action == 1:  # Когда проверка соответствие вершин
+            is_compare = methods.compare_graphs(self.graph_original, self.graph_isomorphic)  # Проверяю
+            if is_compare:
+                self.te_DialogWindow_2.append("Проверяющий: Ты действительно доказал соответствие двух графов.")
+                self.inspector_enable_buttons()  # Разблокировка кнопок проверяющей стороны
+            else:
+                self.te_DialogWindow_2.append("Проверяющий: Вершины твоих графов не соответствуют! Я обнаружил обман.")
+                self.block_buttons()  # Блокируем кнопки
+        elif self.action == 2:  # Когда проверка гамильтонова цикла
+            is_cycle = methods.check_hamiltonias_cycle(self.isomorphic_hamiltonias_cycle, self.graph_isomorphic)
+            if is_cycle:
+                self.te_DialogWindow_2.append("Проверяющий: Твой гамильтонов цикл верный.")
+                self.inspector_enable_buttons()  # Разблокировка кнопок проверяющей стороны
+            else:
+                self.te_DialogWindow_2.append("Проверяющий: Твой гамильтонов цикл неверный.")
+                self.block_buttons()  # Блокируем кнопки
+        else:
+            self.inspector_enable_buttons()  # Разблокировка кнопок проверяющей стороны
+        self.pb_CheckGraph.setEnabled(False)
+    # endregion
+
+    # region Начало диалога
+    # Функция обработки начала диалога
+    def start_dialog(self):
+        self.block_buttons()  # Блокируем кнопки до момента, пока доказывающая сторона не сделает выбор
+        self.prover_choice()  # Печатаем сообщение для выбора действий доказывающей стороны
+
     # Функция обработки выбора доказывающей стороны
     def prover_choice(self):
         # Печатаем сообщение выбора в окно доказывающей стороны
         self.te_DialogWindow_2.append("** Мне нужно сделать выбор: попытаться обмануть собеседника "
                                       "или предоставить верный граф... **")
         self.prover_enabled_buttons()  # Разблокирование кнопок для выбора доказывающей стороны
+        self.pb_CheckGraph.setEnabled(False)
 
-    # Функция обработки начала диалога
-    def start_dialog(self):
-        self.block_buttons()  # Блокируем кнопки до момента, пока доказывающая сторона не сделает выбор
-        self.prover_choice()  # Печатаем сообщение для выбора действий доказывающей стороны
-
-    def push_deception(self):
-        pass
-
-    def push_correct_graph(self):
-        self.te_DialogWindow_2.clear()  # Очистка диалогового окна доказывающей стороны
-        qimg_orig = self.save_original_graph()  # Создание оригинального корректного графа
-        self.print_original_graph(qimg_orig)  # Печать созданного графа
-        self.print_messages_after_choice()  # Печать сообщений после выбора доказывающей стороны
-
-    def push_check_graph(self):
-        pass
-
+    # Функция печати сообщений после выбора доказывающей стороны
     def print_messages_after_choice(self):
         # Создание списка сообщений, выведенных в окна диалога
         self.messages = [
-            "Доказывающий: Я знаю Гамильтонов цикл в исходном графе.",
+            "Доказывающий: Я знаю гамильтонов цикл в исходном графе.",
             "Проверяющий: Докажи, что ты действительно знаешь цикл!",
             "Доказывающий: Я не буду показывать тебе реальный исходный граф. "
             "Докажу тебе это, используя изоморфный ему граф!"
@@ -76,11 +141,10 @@ class ExampleApp(QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
         self.timer = QtCore.QTimer()  # Создание таймера для печати сообщений
         self.timer.timeout.connect(self.print_next_messages)  # Подключение функции вывода сообщений к таймеру
-        self.timer.start(1500)  # Запуск таймера на 1,5 сек., имитируя раздумья сторон
+        self.timer.start(1000)  # Запуск таймера на 1 сек., имитируя раздумья сторон
 
         self.message_index = 0  # Сохранение индекса сообщений для печати
 
-    # region Начало диалога
     # Печать следующего сообщения по таймеру
     def print_next_messages(self):
         if self.message_index < len(self.messages) and self.message_index % 2 == 0:
@@ -98,84 +162,97 @@ class ExampleApp(QtWidgets.QMainWindow, gui.Ui_MainWindow):
             self.timer.stop()  # Останавливаем таймер
             self.prover_block_buttons()  # Блокировка кнопок для доказывающей стороны
             self.inspector_enable_buttons()  # Разблокировка кнопок для проверяющей стороны
+            self.pb_CheckGraph.setEnabled(False)
     # endregion
 
     # region Обработка нажатия на кнопку "Соответствие вершин"
     # Обработка нажатия на кнопку "Соответствие вершин"
     def push_vertex_ratio(self):
-        # Блокируем кнопки
-        self.block_buttons()
-
-        # Печать запроса проверяющего
-        self.print_question_vertex_ratio()
+        self.timer.stop()  # Останавливаем таймер
+        self.block_buttons()  # Блокируем кнопки
+        self.print_question_vertex_ratio()  # Печать запроса проверяющего
+        self.action = 1  # Обновляем значение действия
 
         # Создаем и печатаем изоморфный граф
-        qimg_isomorph = self.create_and_safe_isomorphic_graph()
-        self.print_isomorphic_graph(qimg_isomorph)
+        qimage_isomorph = self.create_and_save_isomorphic_graph()
+        self.print_isomorphic_graph(qimage_isomorph)
 
         # Спим, изображая раздумья доказывающего
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.print_answer_vertex_ratio)  # Подключаем к нужному слоту
+        self.timer.timeout.connect(self.check_deception_percentage)
         self.timer.setSingleShot(True)  # Выполнить только один раз
         self.timer.start(1000)
+
+        self.update_deception_percentage()  # Обновляем вероятность обмана
+        self.lb_Percentage.setText(str(self.deception_percentage))  # Показываем вероятность обмана в поле вероятности
 
     # Печать вопроса проверяющего
     def print_question_vertex_ratio(self):
         # Печать запроса проверяющего
-        self.te_DialogWindow.append("Проверяющий: Покажи соответствие вершин.")
+        self.te_DialogWindow_2.append("Проверяющий: Покажи соответствие вершин.")
 
     # Печать ответа доказывающего
     def print_answer_vertex_ratio(self):
         # Печать ответа доказывающего
-        self.te_DialogWindow.append("Доказывающий: Демонстрирую соответствие вершин на графе.")
+        self.te_DialogWindow.append("Доказывающий: Демонстрирую соответствие вершин на графе: ")
         # Печать соответствия вершин
-        vertex_ratio = methods.show_compliance_node(self.orig_hamiltonias_cycle, self.isomorphic_hamiltonias_cycle)
+        orig_cycle = self.orig_hamiltonias_cycle.copy()
+        isor_cycle = self.isomorphic_hamiltonias_cycle.copy()
+        vertex_ratio = methods.show_compliance_node(orig_cycle, isor_cycle)
         self.te_DialogWindow.append(vertex_ratio)
         # Возвращаем кнопкам активное состояние
-        self.inspector_enable_buttons()
+        self.pb_CheckGraph.setEnabled(True)
     # endregion
 
     # region Обработка нажатия на кнопку "Гамильтонов цикл"
     # Обработка нажатия на кнопку "Гамильтонов цикл"
     def push_cycle(self):
-        # Блокируем кнопки
-        self.block_buttons()
-
-        # Печать запроса проверяющего
-        self.print_question_cycle()
+        self.timer.stop()  # Останавливаем таймер
+        self.block_buttons()  # Блокируем кнопки
+        self.print_question_cycle()  # Печать запроса проверяющего
+        self.action = 2  # Обновляем значение действия
 
         # Создаем и печатаем изоморфный граф
-        qimg_isomorph = self.create_and_safe_isomorphic_graph()
-        self.print_isomorphic_graph(qimg_isomorph)
+        qimage_isomorph = self.create_and_save_isomorphic_graph()
+        self.print_isomorphic_graph(qimage_isomorph)
 
         # Спим, изображая раздумья доказывающего
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.print_answer_cycle)  # Подключаем к нужному слоту
+        self.timer.timeout.connect(self.check_deception_percentage)
         self.timer.setSingleShot(True)  # Выполнить только один раз
         self.timer.start(1000)
+
+        self.update_deception_percentage()  # Обновляем вероятность обмана
+        self.lb_Percentage.setText(str(self.deception_percentage))  # Показываем вероятность обмана в поле вероятности
 
     # Печать вопроса проверяющего
     def print_question_cycle(self):
         # Печать запроса проверяющего и ответа доказывающего
-        self.te_DialogWindow.append("Проверяющий: Покажи гамильтонов цикл.")
+        self.te_DialogWindow_2.append("Проверяющий: Покажи гамильтонов цикл.")
 
     # Печать ответа доказывающего
     def print_answer_cycle(self):
         # Печать ответа доказывающего
-        self.te_DialogWindow.append("Доказывающий: Показываю гамильтонов цикл в изоморфном графе.")
+        self.te_DialogWindow.append("Доказывающий: Показываю гамильтонов цикл в изоморфном графе:")
         # Печать гамильтонова графа
         hamiltonias_cycle = methods.print_hamiltonias_cycle(self.isomorphic_hamiltonias_cycle)
         self.te_DialogWindow.append(hamiltonias_cycle)
         # Возвращаем кнопкам активное состояние
-        self.inspector_enable_buttons()
-
+        self.pb_CheckGraph.setEnabled(True)
     # endregion
 
     # region Обработка нажатия на кнопку "Новый диалог"
     # Обработка кнопки "Новый диалог" (очистка всех виджетов)
-    def clear_widgets(self):
+    def push_new_dialog(self):
+        self.timer.stop()  # Останавливаем таймер
         self.te_DialogWindow.clear()  # Очистка диалогового окна проверяющей стороны
         self.te_DialogWindow_2.clear()  # Очистка диалогового окна доказывающей стороны
+        self.lb_IsomorphicGraphImage.clear()  # Очистка окна демонстрации изоморфного графа
+        self.lb_OrigGraphImage.clear()  # Очистка окна демонстрации оригинального графа
+        self.deception_percentage = 0  # Обнуление вероятности обмана
+        self.lb_Percentage.setText(str(self.deception_percentage))  # Печатаем новый
         self.start_dialog()  # Старт нового диалога
     # endregion
 
@@ -192,8 +269,7 @@ class ExampleApp(QtWidgets.QMainWindow, gui.Ui_MainWindow):
     # region Работа с оригинальным графом
     # Создание исходного графа
     def create_original_graph(self):
-        # Создание нового (исходного графа)
-        graph_original = methods.create_big_graph(7, 15)
+        graph_original = methods.create_big_graph(7, 15)  # Создание нового (исходного графа)
 
         # Запоминаем гамильтонов цикл в исходном графе
         self.orig_hamiltonias_cycle = methods.find_hamiltonias_cycle_original_graph(graph_original)
@@ -229,27 +305,32 @@ class ExampleApp(QtWidgets.QMainWindow, gui.Ui_MainWindow):
 
     # region Работа с изоморфным графом
     # Создание и печать изоморфного графа
-    def create_and_safe_isomorphic_graph(self):
+    def create_and_save_isomorphic_graph(self):
         # Создание объекта фигуры и объекта оси
         fig, ax = plt.subplots(figsize=(8, 8))
 
         # Создаем изоморфный граф
-        graph_isomorphic, list = methods.create_isomorphic_graph(self.graph_original)
-        self.isomorphic_hamiltonias_cycle = methods.find_hamiltonias_cycle_isomorphic_graph(self.orig_hamiltonias_cycle, list)
+        if self.is_deception:
+            # Создание изоморфного графа и сохранение его гамильтонова цикла
+            self.graph_isomorphic, self.isomorphic_hamiltonias_cycle = (
+                methods.create_isomorphic_false_graph(self.graph_original))
+        else:
+            self.graph_isomorphic, list = methods.create_isomorphic_graph(self.graph_original)
+            self.isomorphic_hamiltonias_cycle = methods.find_hamiltonias_cycle_isomorphic_graph(self.orig_hamiltonias_cycle, list)
 
         # Печать графа для запоминания картинки
-        nx.draw(graph_isomorphic, with_labels=True, node_size=500, node_color='coral',
+        nx.draw(self.graph_isomorphic, with_labels=True, node_size=500, node_color='coral',
                 font_size=12, font_color='black',
                 font_weight='bold', edge_color='gray',
-                linewidths=1, pos=nx.spring_layout(graph_isomorphic))
+                linewidths=1, pos=nx.spring_layout(self.graph_isomorphic))
 
         # Сохраняем файл картинки с графом
         fig.savefig('IsomorphicGraph.png')
         plt.close(fig)
         # Считываем картинку и запоминаем её как QPixmap
-        qimg_isomorph = QPixmap('IsomorphicGraph.png')
-        qimg_isomorph = qimg_isomorph.scaled(QSize(660, 520), Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
-        return qimg_isomorph
+        qimage_isomorph = QPixmap('IsomorphicGraph.png')
+        qimage_isomorph = qimage_isomorph.scaled(QSize(660, 520), Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
+        return qimage_isomorph
 
     def print_isomorphic_graph(self, qimg):
         self.lb_IsomorphicGraphImage.setPixmap(qimg)
@@ -279,6 +360,7 @@ class ExampleApp(QtWidgets.QMainWindow, gui.Ui_MainWindow):
         self.pb_CorrectGraph.setEnabled(False)
         self.pb_CheckGraph.setEnabled(False)
     # endregion
+
 
 def main():
     app = QtWidgets.QApplication(sys.argv)  # Новый экземпляр QApplication
